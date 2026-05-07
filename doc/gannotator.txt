@@ -26,6 +26,15 @@ SETUP                                                     *gannotator-setup*
     },
     auto_gitignore = true,
     context_lines = 20,
+    -- No default keymaps. Opt in by passing any of: add, edit, delete,
+    -- next, prev. `add` is also wired up in visual mode for range comments.
+    keymaps = {},
+    filetypes = { "diff", "DiffviewFiles", "DiffviewFileHistory" },
+  })
+
+Example with keymaps: >
+
+  require("gannotator").setup({
     keymaps = {
       add    = "<leader>ca",
       edit   = "<leader>ce",
@@ -33,8 +42,10 @@ SETUP                                                     *gannotator-setup*
       next   = "]a",
       prev   = "[a",
     },
-    filetypes = { "diff", "DiffviewFiles", "DiffviewFileHistory" },
   })
+
+You can also bind the user commands directly without going through the
+`keymaps` table — e.g. `vim.keymap.set("n", "<leader>ca", "<cmd>GAnnotatorAdd<cr>")`.
 
 ==============================================================================
 COMMANDS                                              *gannotator-commands*

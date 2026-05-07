@@ -13,11 +13,33 @@ M.export = export
 function M.setup(opts)
   config.setup(opts)
   M._setup_autocmds()
+  M._apply_keymaps()
+end
+
+function M._apply_keymaps()
+  local km = config.options.keymaps or {}
+  local map = function(mode, lhs, rhs, desc)
+    if not lhs or lhs == "" then return end
+    vim.keymap.set(mode, lhs, rhs, { silent = true, desc = desc })
+  end
+  if km.add then
+    map("n", km.add, "<cmd>GAnnotatorAdd<cr>", "gannotator: add comment")
+    map("x", km.add, ":<C-u>'<,'>GAnnotatorAdd<cr>", "gannotator: add comment (range)")
+  end
+  map("n", km.edit, "<cmd>GAnnotatorEdit<cr>", "gannotator: edit comment")
+  map("n", km.delete, "<cmd>GAnnotatorDelete<cr>", "gannotator: delete comment")
+  map("n", km.next, "<cmd>GAnnotatorNext<cr>", "gannotator: next comment")
+  map("n", km.prev, "<cmd>GAnnotatorPrev<cr>", "gannotator: prev comment")
 end
 
 function M._setup_autocmds()
   local group = vim.api.nvim_create_augroup("Gannotator", { clear = true })
-  vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+  vim.api.nvim_create_autocmd({
+    "BufEnter",
+    "BufWinEnter",
+    "BufWritePost",
+    "BufReadPost",
+  }, {
     group = group,
     callback = function(args)
       vim.schedule(function()

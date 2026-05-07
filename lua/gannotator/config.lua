@@ -14,13 +14,7 @@ M.defaults = {
   },
   auto_gitignore = true,
   context_lines = 20,
-  keymaps = {
-    add = "<leader>ca",
-    edit = "<leader>ce",
-    delete = "<leader>cd",
-    next = "]a",
-    prev = "[a",
-  },
+  keymaps = {},
   filetypes = { "diff", "DiffviewFiles", "DiffviewFileHistory" },
 }
 
