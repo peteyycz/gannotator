@@ -1,0 +1,91 @@
+*gannotator.txt*    Inline comments on git diffs, exportable for an LLM review
+
+==============================================================================
+INTRODUCTION                                              *gannotator-intro*
+
+gannotator lets you leave comments on lines of a git diff inside Neovim,
+display them as virtual lines underneath the code, and export the whole
+review as a markdown file you can hand to Claude Code (or any LLM) via an
+`@` file reference.
+
+The plugin does not modify your source files. Comments live in a sidecar
+JSON file at `.gannotator/<branch>.json` inside your repo (gitignored).
+
+==============================================================================
+SETUP                                                     *gannotator-setup*
+
+  require("gannotator").setup({
+    -- options shown are defaults
+    sidecar_dir = ".gannotator",
+    export_file = "review.md",
+    sign = { text = "💬", hl = "DiagnosticSignInfo" },
+    virt_lines = {
+      border = "rounded",
+      hl_body = "Comment",
+      hl_border = "FloatBorder",
+    },
+    auto_gitignore = true,
+    context_lines = 20,
+    keymaps = {
+      add    = "<leader>ca",
+      edit   = "<leader>ce",
+      delete = "<leader>cd",
+      next   = "]a",
+      prev   = "[a",
+    },
+    filetypes = { "diff", "DiffviewFiles", "DiffviewFileHistory" },
+  })
+
+==============================================================================
+COMMANDS                                              *gannotator-commands*
+
+:GAnnotatorAdd[range]    Add a comment on the current line, or on a visual
+                         range. Opens a multi-line prompt. Save with `:w`
+                         or `:wq`, cancel with `:q`.
+:GAnnotatorEdit          Edit the comment on the current line.
+:GAnnotatorDelete        Delete the comment on the current line.
+:GAnnotatorShow          Show the full comment in a floating popup.
+:GAnnotatorList          Open the quickfix list with all annotations.
+:GAnnotatorExport        Write `.gannotator/review.md` for LLM review.
+:GAnnotatorClear         Delete all annotations on the current branch.
+:GAnnotatorNext          Jump to the next comment in the buffer.
+:GAnnotatorPrev          Jump to the previous comment in the buffer.
+
+==============================================================================
+WORKFLOW                                              *gannotator-workflow*
+
+1. Run a Claude Code session in one terminal; describe the change you want.
+2. After Claude finishes, switch to nvim and open a diff view (e.g. with
+   `:DiffviewOpen`).
+3. Move to a line, press <leader>ca (or visually select a range first).
+   Type your comment, save with `:w` or `:wq`, cancel with `:q`.
+4. Comments render as bordered virtual lines beneath the line they target.
+5. When finished, run `:GAnnotatorExport`. This writes
+   `.gannotator/review.md` in your repo root.
+6. Back in your Claude Code session, type:
+       @.gannotator/review.md please address these comments
+   Claude reads the file via the @ reference and responds.
+
+==============================================================================
+SIDECAR FORMAT                                         *gannotator-sidecar*
+
+`.gannotator/<branch>.json`:
+
+  {
+    "version": 1,
+    "branch": "feature/foo",
+    "annotations": [
+      {
+        "id": "1746000000-123456",
+        "file": "src/api.py",
+        "start_line": 42,
+        "end_line": 44,
+        "comment": "PII in logs — drop user.id.",
+        "created_at": "2026-05-07T19:00:00Z"
+      }
+    ]
+  }
+
+Branch names with `/` are sanitized to `__` in the filename.
+
+ vim:tw=78:ts=8:ft=help:norl:
