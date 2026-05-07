@@ -6,20 +6,9 @@ local M = {}
 
 local NS = vim.api.nvim_create_namespace("gannotator")
 local PROMPT_NS = vim.api.nvim_create_namespace("gannotator_prompt")
-local SIGN_GROUP = "gannotator"
-local SIGN_NAME = "GannotatorComment"
 
 local function box_width()
   return math.min(80, math.max(40, vim.api.nvim_win_get_width(0) - 10))
-end
-
-local function ensure_sign_defined()
-  local existing = vim.fn.sign_getdefined(SIGN_NAME)
-  if existing and #existing > 0 then return end
-  vim.fn.sign_define(SIGN_NAME, {
-    text = config.options.sign.text,
-    texthl = config.options.sign.hl,
-  })
 end
 
 local function wrap_lines(text, width)
@@ -72,7 +61,6 @@ end
 
 local function clear(bufnr)
   vim.api.nvim_buf_clear_namespace(bufnr, NS, 0, -1)
-  pcall(vim.fn.sign_unplace, SIGN_GROUP, { buffer = bufnr })
 end
 
 function M.render(bufnr, opts)
@@ -82,7 +70,6 @@ function M.render(bufnr, opts)
   local file = diff.buffer_relpath(bufnr)
   if not file then return end
 
-  ensure_sign_defined()
   clear(bufnr)
 
   local annotations = sidecar.for_file(file)
@@ -93,13 +80,15 @@ function M.render(bufnr, opts)
 
   for _, ann in ipairs(annotations) do
     if opts.skip_id ~= ann.id then
-      local sign_line = math.min(ann.start_line, total_lines)
-      pcall(vim.fn.sign_place, 0, SIGN_GROUP, SIGN_NAME, bufnr, {
-        lnum = sign_line,
-        priority = 10,
-      })
+      local first = math.min(ann.start_line, total_lines)
+      local last = math.min(ann.end_line, total_lines)
+      for ln = first, last do
+        vim.api.nvim_buf_set_extmark(bufnr, NS, ln - 1, 0, {
+          line_hl_group = "GannotatorAffectedLine",
+        })
+      end
 
-      local anchor = math.min(ann.end_line, total_lines) - 1
+      local anchor = last - 1
       if anchor < 0 then anchor = 0 end
       vim.api.nvim_buf_set_extmark(bufnr, NS, anchor, 0, {
         virt_lines = box(ann.comment, width),

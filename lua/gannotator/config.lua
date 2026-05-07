@@ -3,10 +3,6 @@ local M = {}
 M.defaults = {
   sidecar_dir = ".gannotator",
   export_file = "review.md",
-  sign = {
-    text = "💬",
-    hl = "DiagnosticSignInfo",
-  },
   virt_lines = {
     border = "rounded",
     hl_body = "Comment",

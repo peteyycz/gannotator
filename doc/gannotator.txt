@@ -6,7 +6,11 @@ INTRODUCTION                                              *gannotator-intro*
 gannotator lets you leave comments on lines of a git diff inside Neovim,
 display them as virtual lines underneath the code, and export the whole
 review as a markdown file you can hand to Claude Code (or any LLM) via an
-`@` file reference.
+`@` file reference. Annotated lines get a subtle background tint (the
+`GannotatorAffectedLine` highlight group). By default the bg is computed
+as a small offset from your colorscheme's `Normal` background so it stays
+nearly invisible. Override via `:hi GannotatorAffectedLine guibg=#xxxxxx`
+or `vim.api.nvim_set_hl(0, "GannotatorAffectedLine", { bg = "..." })`.
 
 The plugin does not modify your source files. Comments live in a sidecar
 JSON file at `.gannotator/<branch>.json` inside your repo (gitignored).
@@ -18,7 +22,6 @@ SETUP                                                     *gannotator-setup*
     -- options shown are defaults
     sidecar_dir = ".gannotator",
     export_file = "review.md",
-    sign = { text = "💬", hl = "DiagnosticSignInfo" },
     virt_lines = {
       border = "rounded",
       hl_body = "Comment",
